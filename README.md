@@ -9,9 +9,9 @@ A simple Package Manager for Windows Phones running Astoria builds (10240 - 1057
 
 - Windows 10 Mobile Builds 10240 - 10570
 - Access to Android Storage: `C:\Data\Users\DefApps\AppData\Local\Aow\mnt\shell\emulated\0\Android\obb`
-  - Either from (https://youtu.be/vP-z8jVXVBQ)[WindOS Fone's Guide]
-  - or copy (this)[] link to your Phone Storage, and rename from `.lnk.link` to `.lnk`
-- (Apk2Appx)[https://github.com/fadilfadz01/Apk2Appx_Converter] Converted Apps
+  - Either from [WindOS Fone Guide](https://youtu.be/vP-z8jVXVBQ)
+  - or copy [this](https://github.com/Empyreal96/Astoria-Package-Manager/raw/main/Android%20Data%20Folder.lnk.link) link to your Phone Storage, and rename from `.lnk.link` to `.lnk`
+- [Apk2Appx](https://github.com/fadilfadz01/Apk2Appx_Converter) Converted Apps
 
 
 
