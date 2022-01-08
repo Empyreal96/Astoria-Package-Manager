@@ -719,7 +719,7 @@ SaveManifest()
                     
                    OpenArchiveHeader.Text = "Copying Files";
                    // files = await SelectedObbFolder.GetFilesAsync();
-                   await AndroidFolder.CreateFolderAsync(PackageName, CreationCollisionOption.OpenIfExists);
+                   var AndroidOutput = await AndroidFolder.CreateFolderAsync(PackageName, CreationCollisionOption.OpenIfExists);
                    // var output = await folder.GetFolderAsync(PackageName);
                     
                     //await CopyFolder(folder, SelectedObbFolder, ".obb");
@@ -729,10 +729,14 @@ SaveManifest()
 
                         OpenArchiveHeader.Text = $"Copying {obb.Name}";
                         // await ApplicationData.Current.LocalFolder.DeleteAsync();
-                        await obb.CopyAsync(AndroidFolder, obb.Name, NameCollisionOption.ReplaceExisting);
+                        await obb.CopyAsync(AndroidOutput, obb.Name, NameCollisionOption.ReplaceExisting);
                         
                         var info = await obb.GetBasicPropertiesAsync();
-
+                        if (await AndroidOutput.GetFileAsync(obb.Name) == null)
+                        {
+                            ExceptionHelper.Exceptions.CustomException("There was a issue in copying Data");
+                            return;
+                        }
                         OpenArchiveHeader.Text = $"Copying {obb.Name} Finished";
                         OutputBox.Text += $"\nCopied {obb.Name} {((long)info.Size).ToFileSize()}";
                     }
