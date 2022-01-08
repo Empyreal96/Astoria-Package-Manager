@@ -1,0 +1,435 @@
+﻿<Page
+    x:Class="Astoria_Package_Manager.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Astoria_Package_Manager"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="#FF303030"
+    Loaded="Page_Loaded">
+
+    <Grid>
+        <RelativePanel>
+
+            <Pivot x:Name="APIPivot" Title="Astoria Package Manager" SelectionChanged="APIPivot_SelectionChanged">
+
+                <PivotItem Header="Installer" Margin="5,0,5,0">
+
+                    <RelativePanel 
+                        Grid.Column="0">
+                        <ProgressBar 
+            Width="Auto"
+            Height="5"
+            RelativePanel.AlignTopWith="GridExtractor"
+            RelativePanel.AlignLeftWithPanel="True"
+            HorizontalAlignment="Stretch"
+            RelativePanel.AlignRightWithPanel="True" Background="#FF2D9FC9" Margin="0,0,0,22" 
+            
+            />
+                        <Grid 
+                            Grid.Column="0" 
+                            x:Name="GridExtractor" 
+                            RelativePanel.AlignLeftWithPanel="True" 
+                            RelativePanel.AlignRightWithPanel="True" 
+                            HorizontalAlignment="Stretch" 
+                            VerticalAlignment="Stretch" Margin="0,0,0,0">
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition 
+                                    Width="Auto">
+                                </ColumnDefinition>
+                                <ColumnDefinition 
+                                    Width="*">
+                                </ColumnDefinition>
+
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition 
+                                    Height="Auto" ></RowDefinition>
+                                <RowDefinition 
+                                    Height="Auto"></RowDefinition>
+                                <RowDefinition 
+                                    Height="Auto"></RowDefinition>
+                                <RowDefinition 
+                                    Height="*" ></RowDefinition>
+                                <RowDefinition
+                                    Height="*"></RowDefinition>
+                                <RowDefinition 
+                                    Height="*" ></RowDefinition>
+                                <RowDefinition 
+                                    Height="*"></RowDefinition>
+
+                            </Grid.RowDefinitions>
+
+                            <TextBlock 
+                                x:Name="OpenArchiveHeader" 
+                                TextWrapping="Wrap"
+                                Grid.Column="0" 
+                                Width="auto" 
+                                MinWidth="200"
+                                TextAlignment="Center" 
+                                
+                                Text="Load an Astoria Appx"
+                                HorizontalAlignment="Stretch" 
+                                Margin="5,5,5,5"
+                                Padding="5,5,5,5"
+                                Grid.ColumnSpan="2" FontSize="16" 
+                                />
+
+                            <Button 
+                                x:Name="OpenArchive" 
+                                Click="OpenArchive_Click"
+                                Grid.Column="0"
+                                Grid.Row="1"
+                                Content="Open"
+                                RelativePanel.AlignRightWithPanel="True"
+                                Margin="5,5,5,5" 
+                                Height="auto"
+                                HorizontalAlignment="Stretch"
+                                MaxWidth="100" Width="Auto"
+                                Background="{x:Null}"
+                BorderBrush="{x:Null}"
+                Foreground="#FF33B1DF" FontSize="16"/>
+                            <RelativePanel Grid.Row="1" Grid.Column="1">
+                                <Button 
+                            x:Name="ViewManifestBtn"
+                            Click="ViewManifestBtn_Click"
+                            Margin="5,5,5,5"
+                                RelativePanel.AlignLeftWithPanel="True"
+                            Grid.Column="1"
+                            Grid.Row="1"
+                            Content="View Manifest"
+                            Background="{x:Null}"
+                BorderBrush="{x:Null}"
+                Foreground="#FF33B1DF" FontSize="16"
+                            />
+                                <Button x:Name="AddOBBData"
+                                    Content="Load Data Files"
+                                    RelativePanel.RightOf="ViewManifestBtn"
+                                     Click="AddOBBData_Click"
+                                     Grid.Column="1"
+                                     Grid.Row="1"
+                                    Margin="5,5,5,5"
+                                    Background="{x:Null}"
+                BorderBrush="{x:Null}"
+                Foreground="#FF33B1DF" FontSize="16"/>
+                            </RelativePanel>
+                        </Grid>
+                        <ProgressBar 
+                            x:Name="progressBar" 
+                            RelativePanel.AlignLeftWithPanel="true"
+                            RelativePanel.AlignRightWithPanel="True"
+                            RelativePanel.Below="GridExtractor"
+                            Height="15"
+                            Margin="5,5,5,5" Background="#FF2D9FC9"
+                        
+                            />
+                        <ProgressRing 
+                            x:Name="ProgRing"
+                            Width="72"
+                            Height="72" 
+                            
+                            RelativePanel.AlignRightWithPanel="False" RenderTransformOrigin="0.505,0.536"
+                            Margin="0,0,0,0"
+                            />
+                        <ScrollViewer
+                            RelativePanel.Below="progressBar" 
+                            RelativePanel.AlignLeftWithPanel="True"
+                            RelativePanel.AlignRightWithPanel="True" >
+                            <TextBlock 
+                            x:Name="OutputBox" 
+                            Grid.Column="0" 
+                            RelativePanel.Below="progressBar" 
+                            RelativePanel.AlignLeftWithPanel="True"
+                            RelativePanel.AlignRightWithPanel="True" 
+                            MinWidth="250" 
+                            Margin="5,5,5,5"
+                            HorizontalAlignment="Stretch"
+                            TextWrapping="Wrap" 
+                            VerticalAlignment="Stretch"
+                            Width="auto" 
+                            ScrollViewer.VerticalScrollMode="Enabled" 
+
+                             />
+                        </ScrollViewer>
+                    </RelativePanel>
+                </PivotItem>
+                <PivotItem x:Name="repo" Header="Repo" >
+                    <RelativePanel VerticalAlignment="Stretch"
+                                   HorizontalAlignment="Stretch" Margin="0,0,0,0">
+                        <ProgressBar 
+            Width="Auto"
+            Height="5"
+            RelativePanel.AlignTopWithPanel="True"
+            RelativePanel.AlignLeftWithPanel="True"
+            HorizontalAlignment="Stretch"
+            RelativePanel.AlignRightWithPanel="True" Background="#FF2D9FC9" Margin="0,0,0,22" 
+            
+            />
+                        <TextBlock x:Name="OutputText"
+                                   HorizontalAlignment="Stretch"
+                                   RelativePanel.AlignRightWithPanel="True"
+                                   RelativePanel.AlignLeftWithPanel="True"
+                                   RelativePanel.AlignTopWithPanel="True"
+                                   Text="Browse the ProjectA Repo"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   
+                                   Height="40" Margin="0,10,0,0" FontSize="14"/>
+                        <ProgressBar x:Name="progressRepo"
+                                     RelativePanel.AlignLeftWithPanel="True"
+                                     RelativePanel.AlignRightWithPanel="True"
+                                     RelativePanel.Below="OutputText" 
+                                     Background="#FF33B1DF"
+                                     Margin="5,5,5,5" Foreground="#FF2D9FC9"
+                                     />
+                        <Button x:Name="LoadRepo"
+                                        Content="Load Repo"
+                                        Click="LoadRepo_Click"
+                                         RelativePanel.AlignLeftWithPanel="True"
+                                    RelativePanel.AlignRightWithPanel="True"
+                                    VerticalAlignment="Center"
+                                        HorizontalAlignment="Stretch"
+                                    Width="auto" Background="{x:Null}" BorderBrush="{x:Null}" Padding="8,75,8,4"/>
+                        <Grid x:Name="RepoGrid"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          Width="auto"
+                          RelativePanel.AlignLeftWithPanel="True"
+                          RelativePanel.AlignRightWithPanel="True"
+                              RelativePanel.Below="progressRepo" Background="#FF3C3C3D"
+                          >
+
+                            <RelativePanel x:Name="RepoRelPanel" ScrollViewer.VerticalScrollMode="Enabled">
+
+                                <Button 
+                                    x:Name="RepoHome"
+                                    Content="Home"
+                                    Click="RepoHome_Click"
+                                    HorizontalAlignment="Stretch"
+                                    RelativePanel.AlignLeftWithPanel="True"
+                                    RelativePanel.AlignRightWithPanel="True"
+                                    RelativePanel.AlignTopWithPanel="True"
+                                    Width="auto" Background="{x:Null}" BorderBrush="{x:Null}"
+                                        />
+                                <ScrollViewer RelativePanel.AlignLeftWithPanel="True"
+                                              RelativePanel.AlignRightWithPanel="True"
+                                              RelativePanel.AlignBottomWithPanel="True"
+                                              
+                                              RelativePanel.Below="RepoHome"
+                                              >
+                                    <StackPanel
+                                    x:Name="GamesStack"
+                                    ScrollViewer.VerticalScrollMode="Enabled"
+                                    
+                                    HorizontalAlignment="Stretch"
+                                    RelativePanel.AlignLeftWithPanel="True"
+                                    RelativePanel.AlignRightWithPanel="True"
+                                    RelativePanel.Below="RepoHome">
+
+
+                                    </StackPanel>
+                                </ScrollViewer>
+                                <Button x:Name="GamesButton"
+                                    Content="Games"
+                                    Click="GamesButton_Click"
+                                    HorizontalAlignment="Stretch"
+                                    RelativePanel.AlignLeftWithPanel="True"
+                                    RelativePanel.AlignRightWithPanel="True"
+                                    Width="auto" Background="{x:Null}" BorderBrush="{x:Null}"
+                                    />
+
+                                <Button x:Name="Appsbutton"
+                                        Content="Applications"
+                                        Click="Appsbutton_Click"
+                                        HorizontalAlignment="Stretch"
+                                        RelativePanel.AlignLeftWithPanel="True"
+                                        RelativePanel.AlignRightWithPanel="True"
+                                        RelativePanel.Below="GamesButton"
+                                        Width="auto" Background="{x:Null}" BorderBrush="{x:Null}"/>
+
+
+
+                                <Button x:Name="AudioVideo"
+                                        Content="Audio/Video"
+                                        Click="AudioVideo_Click"
+                                        HorizontalAlignment="Stretch"
+                                        RelativePanel.AlignLeftWithPanel="True"
+                                        RelativePanel.AlignRightWithPanel="True"
+                                        RelativePanel.Below="RepoHome"
+                                        Width="auto" 
+                                        Background="{x:Null}" 
+                                        BorderBrush="{x:Null}"/>
+                                <Button x:Name="Browsers"
+                                        Content="Browsers"
+                                        Click="Browsers_Click"
+                                        HorizontalAlignment="Stretch"
+                                        RelativePanel.AlignLeftWithPanel="True"
+                                        RelativePanel.AlignRightWithPanel="True"
+                                        RelativePanel.Below="AudioVideo"
+                                        Width="auto" 
+                                        Background="{x:Null}" 
+                                        BorderBrush="{x:Null}"/>
+                                <Button x:Name="Emulation"
+                                        Content="Emulation"
+                                        Click="Emulation_Click"
+                                        HorizontalAlignment="Stretch"
+                                        RelativePanel.AlignLeftWithPanel="True"
+                                        RelativePanel.AlignRightWithPanel="True"
+                                        RelativePanel.Below="Browsers"
+                                        Width="auto" 
+                                        Background="{x:Null}" 
+                                        BorderBrush="{x:Null}"/>
+                                <Button x:Name="GApps"
+                                        Content="Google Apps"
+                                        Click="GApps_Click"
+                                        HorizontalAlignment="Stretch"
+                                        RelativePanel.AlignLeftWithPanel="True"
+                                        RelativePanel.AlignRightWithPanel="True"
+                                        RelativePanel.Below="Emulation"
+                                        Width="auto" 
+                                        Background="{x:Null}" 
+                                        BorderBrush="{x:Null}"/>
+                                <Button x:Name="Imaging"
+                                        Content="Imaging"
+                                        Click="Imaging_Click"
+                                        HorizontalAlignment="Stretch"
+                                        RelativePanel.AlignLeftWithPanel="True"
+                                        RelativePanel.AlignRightWithPanel="True"
+                                        RelativePanel.Below="GApps"
+                                        Width="auto" 
+                                        Background="{x:Null}" 
+                                        BorderBrush="{x:Null}"/>
+                                <Button x:Name="Messaging"
+                                        Content="Messaging"
+                                        Click="Messaging_Click"
+                                        HorizontalAlignment="Stretch"
+                                        RelativePanel.AlignLeftWithPanel="True"
+                                        RelativePanel.AlignRightWithPanel="True"
+                                        RelativePanel.Below="Imaging"
+                                        Width="auto" 
+                                        Background="{x:Null}" 
+                                        BorderBrush="{x:Null}"/>
+                                <Button x:Name="Misc"
+                                        Content="Misc"
+                                        Click="Misc_Click"
+                                        HorizontalAlignment="Stretch"
+                                        RelativePanel.AlignLeftWithPanel="True"
+                                        RelativePanel.AlignRightWithPanel="True"
+                                        RelativePanel.Below="Messaging"
+                                        Width="auto" 
+                                        Background="{x:Null}" 
+                                        BorderBrush="{x:Null}"/>
+                                <Button x:Name="Readers"
+                                        Content="Readers"
+                                        Click="Readers_Click"
+                                        HorizontalAlignment="Stretch"
+                                        RelativePanel.AlignLeftWithPanel="True"
+                                        RelativePanel.AlignRightWithPanel="True"
+                                        RelativePanel.Below="Misc"
+                                        Width="auto" 
+                                        Background="{x:Null}" 
+                                        BorderBrush="{x:Null}"/>
+                                <Button x:Name="SocialMedia"
+                                        Content="Social Media"
+                                        Click="SocialMedia_Click"
+                                        HorizontalAlignment="Stretch"
+                                        RelativePanel.AlignLeftWithPanel="True"
+                                        RelativePanel.AlignRightWithPanel="True"
+                                        RelativePanel.Below="Readers"
+                                        Width="auto" 
+                                        Background="{x:Null}" 
+                                        BorderBrush="{x:Null}"/>
+                                <Button x:Name="TextEdit"
+                                        Content="Text Editors"
+                                        Click="TextEdit_Click"
+                                        HorizontalAlignment="Stretch"
+                                        RelativePanel.AlignLeftWithPanel="True"
+                                        RelativePanel.AlignRightWithPanel="True"
+                                        RelativePanel.Below="SocialMedia"
+                                        Width="auto" 
+                                        Background="{x:Null}" 
+                                        BorderBrush="{x:Null}"/>
+                                <Button x:Name="Tools"
+                                        Content="Tools"
+                                        Click="Tools_Click"
+                                        HorizontalAlignment="Stretch"
+                                        RelativePanel.AlignLeftWithPanel="True"
+                                        RelativePanel.AlignRightWithPanel="True"
+                                        RelativePanel.Below="TextEdit"
+                                        Width="auto" 
+                                        Background="{x:Null}" 
+                                        BorderBrush="{x:Null}"/>
+
+
+
+
+                            </RelativePanel>
+                        </Grid>
+                    </RelativePanel>
+                </PivotItem>
+                <PivotItem Header="About">
+                    <RelativePanel VerticalAlignment="Stretch" MinHeight="250">
+                        <TextBlock x:Name="AboutText"
+                                   Margin="5,5,5,5"
+                                   RelativePanel.AlignLeftWithPanel="True"
+                                   RelativePanel.AlignRightWithPanel="True"
+                                   />
+                        <Button x:Name="TelegramLink"
+                                Content="ProjectA Telegram"
+                                Click="TelegramLink_Click"
+                                RelativePanel.Below="AboutText"
+                                RelativePanel.AlignLeftWithPanel="True"
+                                RelativePanel.AlignRightWithPanel="True"
+                                
+                                Margin="5,5,5,5" 
+                Background="{x:Null}"
+                BorderBrush="{x:Null}"
+                Foreground="#FF33B1DF" FontSize="16" />
+                        <Button x:Name="GithubAStorageLnk"
+                                Click="GithubAStorageLnk_Click"
+                                Content="View Full Readme"
+                                Margin="5,5,5,5"
+                                FontSize="16"
+                                Background="{x:Null}"
+                                BorderBrush="{x:Null}"
+                                Foreground="#FF33B1DF"
+                                RelativePanel.Below="TelegramLink"
+                                RelativePanel.AlignLeftWithPanel="True"/>
+                        <Button x:Name="ClearFirstRunData"
+                            Content="Clear First Run Data"
+                            Click="ClearFirstRunData_Click"
+                            Margin="5,5,5,5"
+                               Background="{x:Null}"
+                BorderBrush="{x:Null}"
+                Foreground="#FF33B1DF"
+                                RelativePanel.AlignBottomWithPanel="True"
+                                HorizontalAlignment="Stretch"
+                                RelativePanel.AlignLeftWithPanel="True"
+                                RelativePanel.AlignRightWithPanel="True"/>
+                    </RelativePanel>
+
+
+                </PivotItem>
+            </Pivot>
+            <Button 
+                x:Name="InstallPackageBtn"
+                Click="InstallPackageBtn_Click"
+                Content="Install"
+                RelativePanel.AlignBottomWithPanel="True"
+                RelativePanel.AlignLeftWithPanel="True"
+                RelativePanel.AlignRightWithPanel="True"
+                Width="auto"
+                HorizontalAlignment="Stretch"
+                Margin="5,5,5,5"
+                BorderBrush="{x:Null}"
+                Foreground="#FF33B1DF" FontSize="25" VerticalAlignment="Bottom">
+                <Button.Background>
+                    <SolidColorBrush Color="#FF303030" Opacity="0.5"/>
+                </Button.Background>
+            </Button>
+        </RelativePanel>
+    </Grid>
+
+</Page>
