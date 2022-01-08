@@ -12,7 +12,7 @@ namespace ExceptionHelper
         public static async void ThrownExceptionError(System.Exception ex)
         {
 
-            var ThrownException = new MessageDialog(ex.Message + "\n" + "\n" + ex.ToString());
+            var ThrownException = new MessageDialog($"{ex.Message}\n\n{ex.Source}\n\n{ex.ToString()}\n\n{ex.StackTrace}");
             ThrownException.Commands.Add(new UICommand("Close"));
             await ThrownException.ShowAsync();
         }
@@ -35,6 +35,12 @@ namespace ExceptionHelper
             var AstoriaErr = new MessageDialog($"Make sure both Download and Android Storage Folders are set!");
             AstoriaErr.Commands.Add(new UICommand("Close"));
             await AstoriaErr.ShowAsync();
+        }
+        public static async void CustomException(string String)
+        {
+            var CustErr = new MessageDialog(String);
+            CustErr.Commands.Add(new UICommand("Close"));
+            await CustErr.ShowAsync();
         }
     }
 }

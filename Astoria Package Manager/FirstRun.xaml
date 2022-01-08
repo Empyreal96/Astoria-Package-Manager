@@ -40,7 +40,7 @@
                 Foreground="#FF33B1DF"
                     Margin="5,5,5,5"/>
             <TextBlock x:Name="AndroidLocation"
-                       Text="Please Choose 'This Device > Android Storage > Android > Obb' or use the location of the shortcut provided on Github. This is only for Apps/Games that require Data Files."
+                       Text="Please Choose 'This Device > Android Storage > Android > Obb', If this doesn't exist check the Readme. This is only for Apps/Games that require Data Files."
                        TextWrapping="Wrap"
                        Margin="5,5,5,5"
                        RelativePanel.Below="ChooseDlDir"/>
@@ -54,7 +54,7 @@
                 Foreground="#FF33B1DF"/>
             <Button x:Name="GithubLink"
                     Click="GithubLink_Click"
-                    Content="Fetch Shortcut File (Opens Edge)"
+                    Content="View Readme"
                     RelativePanel.Below="ChooseASDir"
                     Margin="5,5,5,5"
                      Background="{x:Null}"
@@ -71,6 +71,33 @@
                     Background="{x:Null}"
                 BorderBrush="{x:Null}"
                 Foreground="#FF33B1DF" FontSize="20"/>
+            <Frame x:Name="ReadmeFrame" 
+                   RelativePanel.AlignLeftWithPanel="True"
+                   RelativePanel.AlignRightWithPanel="True"
+                   RelativePanel.AlignTopWithPanel="True"
+                   RelativePanel.AlignBottomWithPanel="True"
+                   Margin="10,10,10,10">
+                <RelativePanel>
+                    <TextBlock x:Name="ReadmeBox"
+                                   RelativePanel.Above="CloseReadme"
+                                   RelativePanel.AlignLeftWithPanel="True"
+                                   RelativePanel.AlignRightWithPanel="True"
+                                   RelativePanel.AlignTopWithPanel="True"
+                                   Margin="5,5,5,5"
+                                   />
+                    
+                    <Button x:Name="CloseReadme"
+                        Content="Close"
+                        RelativePanel.AlignBottomWithPanel="True"
+                        Background="{x:Null}"
+                        BorderBrush="{x:Null}"
+                        Foreground="#FF33B1DF" FontSize="20"
+                            RelativePanel.AlignLeftWithPanel="True"
+                            RelativePanel.AlignRightWithPanel="True"
+                            HorizontalAlignment="Stretch"/>
+                </RelativePanel>
+
+            </Frame>
         </RelativePanel>
     </Grid>
 </Page>

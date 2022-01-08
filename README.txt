@@ -1,11 +1,8 @@
-# Astoria Package Manager (In Progress)
+# Astoria Package Manager (In Progress) #
+
 A simple Package Manager for Windows Phones running Astoria builds (10240 - 10570) 
 
-
-
-### Not release ready yet
-
-## Requirements:
+## Requirements: ##
 
 - Windows 10 Mobile Builds 10240 - 10570
 - Access to Android Storage: `This Device > Android Storage > Android > obb`
@@ -15,7 +12,8 @@ A simple Package Manager for Windows Phones running Astoria builds (10240 - 1057
 
 
 
-## Features:
+## Features: ##
+
 - Install Apk2Appx converted apps.
 - Copy App Data to Android Storage
 - View Package Info (Permissions, API Targets etc).
@@ -23,11 +21,11 @@ A simple Package Manager for Windows Phones running Astoria builds (10240 - 1057
 
 
 
-# Help/FAQ
+### Help/FAQ ###
 
-**How do I access Android Storage? I don't have [This Phone] > [Android Storage] folder**
+Q) How do I access Android Storage? I don't have [This Phone] > [Android Storage] folder
 
-You have two options to restore the folder:
+A) You have two options to restore the folder:
 
 - Re-apply "Patch 2" from the [WindOS Fone Guide](https://youtu.be/vP-z8jVXVBQ)
 - Manually create the folder, You will need [CMD access](https://github.com/fadilfadz01/CMD.Injector) on-device.  
@@ -39,6 +37,6 @@ To manually create, open/connect to the Command Prompt, and type:
 
 
 
-### Notices:
+### Notices: ###
 - UI is not final 
 - This is still in early stages, issues may occur

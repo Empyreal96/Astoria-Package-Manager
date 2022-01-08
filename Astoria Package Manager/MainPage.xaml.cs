@@ -34,6 +34,8 @@ using System.Runtime.InteropServices;
 using Windows.Storage.AccessCache;
 using System.Diagnostics;
 using Windows.Storage.Search;
+using Windows.Networking.BackgroundTransfer;
+using System.Threading;
 
 //using Windows.Data.Xml.Dom;
 
@@ -51,7 +53,9 @@ namespace Astoria_Package_Manager
         public StorageFolder PackageFolder { get; set; }
         public static StorageFolder obbFiles { get; set; }
         public static StorageFolder AndroidFolder{ get; set; }
+        public static StorageFolder DownloadFolder { get; set; }
         public StorageFolder SelectedObbFolder { get; set; }
+        public IReadOnlyList<StorageFile> files { get; set; }
         public bool IsAppDataRequired { get; set; }
         public static string content { get; set; }
         public static StorageFile SelectedPackage { get; set; }
@@ -65,7 +69,11 @@ namespace Astoria_Package_Manager
         public string PackageName { get; set; }
         public string FoundPermissions { get; set; }
         public string InstaledPkgList { get; set; }
-        public string AoWMount = @"C:\Data\Users\DefApps\AppData\Local\Aow\data\";
+        DownloadOperation downloadOperation;
+        CancellationTokenSource cancellationToken;
+
+        BackgroundDownloader backgroundDownloader = new BackgroundDownloader();
+
         /// <summary>
         /// 
         /// </summary>
@@ -103,12 +111,18 @@ namespace Astoria_Package_Manager
                 Tools.Visibility = Visibility.Collapsed;
                 progressRepo.Visibility = Visibility.Collapsed;
                 AddOBBData.Visibility = Visibility.Collapsed;
-                
+                GetAndroidFolder();
+                GetDownloadFolder();
                 OutputBox.Text = "\n[Alpha Build]\n\n" +
                     "Open a compatible package to install, bigger packages (60MB+) will take longer to process.\n\n" +
                     "Please be aware functionality is limited for now, over time this will become perfected!";
                 AboutText.Text = "This software uses several Open Source libraries:\n• Iteedee.ApkReader by hylander0\n" +
-                    "• MegaApiClient fork from MediaExplorer\n\n\n" +
+                    "• MegaApiClient fork from MediaExplorer\n\n" +
+                    @"### Help/FAQ ###\n\nQ) How do I access Android Storage? I don't have [This Phone] > [Android Storage] folder\n\n" + 
+                    @"A) You have two options to restore the folder:\n\n- Re-apply Patch 2 from the [WindOS Fone Tutorial](https://youtu.be/vP-z8jVXVBQ)\n" + 
+                    @"- Manually create the folder, You will need [CMD access](https://github.com/fadilfadz01/CMD.Injector) on-device.\n\n" + 
+                    @"To manually create, open/connect to the Command Prompt, and type:\n\n`mklink" + 
+                    @"/J C:\Data\Users\Public\Android Storage C:\Data\Users\DefApps\AppData\Local\aow\mnt\shell\emulated\0\\n\n"  +
                     "Want to submit an app to the repo?" +
                     "\nRepack/Convert the app to Appx, and upload to the ProjectA Telegram, I will update the repo as needed";
             } catch (Exception ex)
@@ -117,7 +131,120 @@ namespace Astoria_Package_Manager
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        public async void DEBUGRemoveAppData()
+        {
 
+            try
+            {
+                var OldData = await ApplicationData.Current.LocalFolder.GetFileAsync("FRComplete.txt");
+                await OldData.DeleteAsync();
+            }
+            catch (Exception ex)
+            {
+                ExceptionHelper.Exceptions.ThrownExceptionError(ex);
+            }
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public async void HasFirstRunComplete()
+        {
+            try
+            {
+                await ApplicationData.Current.LocalFolder.GetFileAsync("FRComplete.txt");
+                IsFirstRunComplete = true;
+                return;
+            }
+            catch (Exception ex)
+            {
+                IsFirstRunComplete = false;
+                LoadFirstRun();
+            }
+        }
+
+
+        /// <summary>
+        /// Navigate to the First Run setup page
+        /// </summary>
+        public async void LoadFirstRun()
+        {
+            //this.Frame.Navigate(typeof(FirstRun));
+            try
+            {
+
+                var SetupPage = $"Astoria_Package_Manager.FirstRun";
+                var HomePageType = Type.GetType(SetupPage);
+                Frame.Navigate(HomePageType);
+            }
+            catch (Exception ex)
+            {
+                ExceptionHelper.Exceptions.ThrownExceptionError(ex);
+            }
+        }
+
+
+    
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private async void AddOBBData_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                FileOpenPicker picker = new FileOpenPicker();
+                picker.FileTypeFilter.Add(".obb");
+                files = await picker.PickMultipleFilesAsync();
+                OutputBox.Text += "\n\nData Files Loaded ";
+                foreach (var file in files)
+                {
+                    OutputBox.Text += $"\n{file.Name}";
+                }
+
+                IsAppDataRequired = true;
+            }
+            catch (Exception ex)
+            {
+                ExceptionHelper.Exceptions.ThrownExceptionError(ex);
+            }
+        }
+
+
+
+        private void Page_Loaded(object sender, RoutedEventArgs e)
+        {
+
+            HasFirstRunComplete();
+        }
+
+
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ClearFirstRunData_Click(object sender, RoutedEventArgs e)
+        {
+            DEBUGRemoveAppData();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private async void GithubAStorageLnk_Click(object sender, RoutedEventArgs e)
+        {
+            
+        }
 
         /// <summary>
         /// Open a file
@@ -517,15 +644,15 @@ SaveManifest()
         }
 
 
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="file"></param>
         public async void InstallPackage(StorageFile file)
         {
             try
             {
-                InstallPackageBtn.Visibility = Visibility.Collapsed;
-            progressBar.IsEnabled = true;
-            progressBar.Visibility = Visibility.Visible;
-            progressBar.IsIndeterminate = true;
+            
             OpenArchiveHeader.Text = "Installing, Please Wait";
             //pacman.FindPackageForUser
 
@@ -536,7 +663,7 @@ SaveManifest()
                 OpenArchiveHeader.Text = "Select another file to install more";
                 progressBar.IsEnabled = false;
                 progressBar.Visibility = Visibility.Collapsed;
-                progressBar.IsIndeterminate = true;
+                progressBar.IsIndeterminate = false;
                 var CompletedInstall = new MessageDialog($"{PackageName} has installed successfully");
                 CompletedInstall.Commands.Add(new UICommand("Close"));
                 await CompletedInstall.ShowAsync();
@@ -584,28 +711,36 @@ SaveManifest()
             {
                 try
                 {
-                   // StorageNotifier.Notifier.ShowAStorageMessage();
-                    //FolderPicker picker = new FolderPicker();
-                    //picker.FileTypeFilter.Add(".obb");
-                    //StorageFolder folder = await picker.PickSingleFolderAsync();
-                    OpenArchiveHeader.Text = "Placeholder: Copying Files";
-                    var obbFile = await SelectedObbFolder.GetFilesAsync();
-                   var output = await AndroidFolder.CreateFolderAsync(PackageName, CreationCollisionOption.OpenIfExists);
-                    foreach (var obb in obbFile)
-                    {
-                        try
-                        {
+                    InstallPackageBtn.Visibility = Visibility.Collapsed;
+                    progressBar.IsEnabled = true;
+                    progressBar.Visibility = Visibility.Visible;
+                    progressBar.IsIndeterminate = true;
+                    //StorageNotifier.Notifier.ShowAStorageMessage();
+                    
+                   OpenArchiveHeader.Text = "Copying Files";
+                   // files = await SelectedObbFolder.GetFilesAsync();
+                   await AndroidFolder.CreateFolderAsync(PackageName, CreationCollisionOption.OpenIfExists);
+                   // var output = await folder.GetFolderAsync(PackageName);
+                    
+                    //await CopyFolder(folder, SelectedObbFolder, ".obb");
 
-                            await obb.CopyAsync(output);
-                        }
-                        catch (Exception ex)
-                        {
-                            ExceptionHelper.Exceptions.ThrownExceptionError(ex);
-                        }
+                    foreach (var obb in files)
+                    {
+
+                        OpenArchiveHeader.Text = $"Copying {obb.Name}";
+                        // await ApplicationData.Current.LocalFolder.DeleteAsync();
+                        await obb.CopyAsync(AndroidFolder, obb.Name, NameCollisionOption.ReplaceExisting);
+                        
+                        var info = await obb.GetBasicPropertiesAsync();
+
+                        OpenArchiveHeader.Text = $"Copying {obb.Name} Finished";
+                        OutputBox.Text += $"\nCopied {obb.Name} {((long)info.Size).ToFileSize()}";
                     }
                     //OpenArchiveHeader.Text = savedOutput.Path;
                     //var obbFilesFound = await savedOutput.GetFilesAsync();
-                    
+                    progressBar.IsEnabled = false;
+                    progressBar.Visibility = Visibility.Visible;
+                    progressBar.IsIndeterminate = false;
                 } catch (Exception ex)
                 {
                     ExceptionHelper.Exceptions.ThrownExceptionError(ex);
@@ -613,8 +748,43 @@ SaveManifest()
                 
             }
             InstallPackage(SelectedPackage);
+            progressBar.IsEnabled = false;
+            progressBar.Visibility = Visibility.Collapsed;
+            progressBar.IsIndeterminate = false;
         }
 
+        /// <summary>
+        /// Copy one StorageFolder to Another
+        /// </summary>
+        /// <param name="targetFolder"></param>
+        /// <param name="destinationFolder"></param>
+        /// <param name="customExtention"></param>
+        /// <returns></returns>
+        public static async Task<long> CopyFolder(StorageFolder targetFolder, StorageFolder destinationFolder, string customExtention = "")
+        {
+            long folderSize = 0;
+            try
+            {
+                var folders = targetFolder.CreateFileQuery(CommonFileQuery.OrderByName);
+                if (customExtention.Length > 0)
+                {
+                    var fileSizeTasks = (await folders.GetFilesAsync()).Where(item => Path.GetExtension(item.Path).ToLower().Equals(customExtention.ToLower())).Select(async file => (await file.CopyAsync(destinationFolder, file.Name, NameCollisionOption.ReplaceExisting)));
+
+                    await Task.WhenAll(fileSizeTasks);
+                }
+                else
+                {
+                    var fileSizeTasks = (await folders.GetFilesAsync()).Select(async file => (await file.CopyAsync(destinationFolder, file.Name, NameCollisionOption.ReplaceExisting)));
+
+                    await Task.WhenAll(fileSizeTasks);
+                }
+            }
+            catch (Exception e)
+            {
+                ExceptionHelper.Exceptions.ThrownExceptionError(e);
+            }
+            return folderSize;
+        }
 
 
         /// <summary>
@@ -629,7 +799,7 @@ SaveManifest()
         }
 
         /// <summary>
-        /// 
+        /// Retrieve saved Android Storage Folder
         /// </summary>
         /// <returns></returns>
         public static async Task<StorageFolder> GetAndroidFolder()
@@ -642,10 +812,24 @@ SaveManifest()
                 AndroidFolder = await GetFileForToken(fileToken);
             }
             
-           
-           
-
             return AndroidFolder;
+        }
+
+        /// <summary>
+        /// Retrieve saved Download Folder StorageFolder
+        /// </summary>
+        /// <returns></returns>
+        public static async Task<StorageFolder> GetDownloadFolder()
+        {
+            AndroidFolder = null;
+
+            var fileToken = Plugin.Settings.CrossSettings.Current.GetValueOrDefault("DownloadStorage", "");
+            if (fileToken.Length > 0)
+            {
+                DownloadFolder = await GetFileForToken(fileToken);
+            }
+
+            return DownloadFolder;
         }
 
 
@@ -653,19 +837,18 @@ SaveManifest()
 
 
 
-
-
-
-
-
-
-
-
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////
         /// 
+        ///     ProjectA Repository
         ///
         ///
-        ///
-        ///
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
         Button newButton { get; set; }
         MegaApiClient client { get; set; }
         public INode Selnode { get; set; }
@@ -772,7 +955,7 @@ SaveManifest()
                 //client.LoginAnonymous();
                 //client.DownloadFile(node, node.Name);
                 FolderPicker picker = new FolderPicker();
-                StorageFolder storageFolder = await picker.PickSingleFolderAsync();
+                StorageFolder storageFolder = DownloadFolder;
 
                 foreach (INode node in nodes.Where(x => x.Type == NodeType.File))
                 {
@@ -1176,128 +1359,6 @@ SaveManifest()
             client.LoginAnonymous();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public async void DEBUGRemoveAppData()
-        {
-
-            try
-            {
-
-                var OldData = await ApplicationData.Current.LocalFolder.GetFileAsync("FRComplete.txt");
-                await OldData.DeleteAsync();
-            }
-            catch (Exception ex)
-            {
-                ExceptionHelper.Exceptions.ThrownExceptionError(ex);
-            }
-
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public async void HasFirstRunComplete()
-        {
-
-            try
-            {
-                await ApplicationData.Current.LocalFolder.GetFileAsync("FRComplete.txt");
-                IsFirstRunComplete = true;
-                return;
-            }
-            catch (Exception ex)
-            {
-                IsFirstRunComplete = false;
-                LoadFirstRun();
-            }
-        }
-
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public async void LoadFirstRun()
-        {
-            //this.Frame.Navigate(typeof(FirstRun));
-            try
-            {
-
-                var SetupPage = $"Astoria_Package_Manager.FirstRun";
-                var HomePageType = Type.GetType(SetupPage);
-                Frame.Navigate(HomePageType);
-            } catch (Exception ex)
-            {
-                ExceptionHelper.Exceptions.ThrownExceptionError(ex);
-            }
-        }
-
        
-        ///public string obbDestination = @"C:\Data\Users\DefApps\AppData\Local\Aow\mnt\shell\emulated\0\Android\obb";
-        
-        ///
-        private async void AddOBBData_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                FolderPicker picker = new FolderPicker();
-                picker.FileTypeFilter.Add(".obb");
-                picker.SuggestedStartLocation = PickerLocationId.Downloads;
-                SelectedObbFolder = await picker.PickSingleFolderAsync();
-                if (SelectedObbFolder == null)
-                {
-                    return;
-                }
-
-                var files = await SelectedObbFolder.GetFilesAsync();
-
-
-                //FileOpenPicker obbFilePicker = new FileOpenPicker();
-                //obbFilePicker.FileTypeFilter.Add(".obb");
-                
-
-
-                OutputBox.Text += "\n\nData Files Loaded: ";
-                foreach (var obb in files)
-                {
-                    OutputBox.Text += $"\n{obb.Name}";
-                }
-                
-
-                //
-                IsAppDataRequired = true;
-                //
-
-            } catch (Exception ex)
-            {
-                ExceptionHelper.Exceptions.ThrownExceptionError(ex);
-            }
-        }
-
-        
-
-        private void Page_Loaded(object sender, RoutedEventArgs e)
-        {
-
-            HasFirstRunComplete();
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void ClearFirstRunData_Click(object sender, RoutedEventArgs e)
-        {
-            DEBUGRemoveAppData();
-        }
-
-        private void GithubAStorageLnk_Click(object sender, RoutedEventArgs e)
-        {
-            if (ApplicationData.Current.LocalFolder.GetFileAsync("README.md") == null)
-            {
-
-            }
-        }
     }
 }

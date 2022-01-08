@@ -10,7 +10,7 @@
   <Identity
     Name="0409916d-f65a-4bb8-8755-671b295c47c7"
     Publisher="CN=Empyreal96"
-    Version="0.0.29.0" />
+    Version="0.0.32.0" />
 
   <mp:PhoneIdentity PhoneProductId="0409916d-f65a-4bb8-8755-671b295c47c7" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
