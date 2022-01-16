@@ -95,7 +95,7 @@
                                 <Button 
                             x:Name="ViewManifestBtn"
                             Click="ViewManifestBtn_Click"
-                            Margin="5,5,5,5"
+                            Margin="15,5,5,5"
                                 RelativePanel.AlignLeftWithPanel="True"
                             Grid.Column="1"
                             Grid.Row="1"
@@ -106,7 +106,7 @@
                             />
                                 <Button x:Name="AddOBBData"
                                     Content="Load Data Files"
-                                    RelativePanel.RightOf="ViewManifestBtn"
+                                    RelativePanel.AlignRightWithPanel="True"
                                      Click="AddOBBData_Click"
                                      Grid.Column="1"
                                      Grid.Row="1"
@@ -116,13 +116,15 @@
                 Foreground="#FF33B1DF" FontSize="16"/>
                             </RelativePanel>
                         </Grid>
+                        
                         <ProgressBar 
                             x:Name="progressBar" 
                             RelativePanel.AlignLeftWithPanel="true"
                             RelativePanel.AlignRightWithPanel="True"
                             RelativePanel.Below="GridExtractor"
+                            
                             Height="15"
-                            Margin="5,5,5,5" Background="#FF2D9FC9"
+                            Margin="5,5,5,5" Background="#FF2D9FC9" Foreground="#FF2D9FC9"
                         
                             />
                         <ProgressRing 
@@ -133,9 +135,12 @@
                             RelativePanel.AlignRightWithPanel="False" RenderTransformOrigin="0.505,0.536"
                             Margin="0,0,0,0"
                             />
+                       
                         <ScrollViewer
-                            RelativePanel.Below="progressBar" 
-                            RelativePanel.AlignLeftWithPanel="True"
+                            x:Name="textscroll"
+                            
+                            RelativePanel.RightOf="AppLogo"
+                            RelativePanel.AlignTopWith="progressBar"
                             RelativePanel.AlignRightWithPanel="True" >
                             <TextBlock 
                             x:Name="OutputBox" 
@@ -153,6 +158,20 @@
 
                              />
                         </ScrollViewer>
+                        <Image x:Name="AppLogo"
+                               RelativePanel.AlignLeftWithPanel="True"
+                               RelativePanel.Below="progressBar"
+                               Width="0"
+                               Height="50"
+                               Margin="12,30,12,5"/>
+
+                        <TextBlock
+                            x:Name="PermText"
+                            RelativePanel.Below="AppLogo"
+                            RelativePanel.AlignLeftWithPanel="True"
+                            RelativePanel.AlignRightWithPanel="True"
+                            Margin="5,30,5,5" TextWrapping="Wrap"
+                            ScrollViewer.VerticalScrollMode="Enabled"/>
                     </RelativePanel>
                 </PivotItem>
                 <PivotItem x:Name="repo" Header="Repo" >
@@ -372,6 +391,7 @@
                 <PivotItem Header="About">
                     <RelativePanel VerticalAlignment="Stretch" MinHeight="250">
                         <TextBlock x:Name="AboutText"
+                                   TextWrapping="Wrap"
                                    Margin="5,5,5,5"
                                    RelativePanel.AlignLeftWithPanel="True"
                                    RelativePanel.AlignRightWithPanel="True"
@@ -403,16 +423,51 @@
                             Margin="5,5,5,5"
                                Background="{x:Null}"
                 BorderBrush="{x:Null}"
-                Foreground="#FF33B1DF"
-                                RelativePanel.AlignBottomWithPanel="True"
+                Foreground="#FFE51400"
+                                RelativePanel.Below="GithubAStorageLnk"
                                 HorizontalAlignment="Stretch"
                                 RelativePanel.AlignLeftWithPanel="True"
-                                RelativePanel.AlignRightWithPanel="True"/>
+                                />
                     </RelativePanel>
 
 
                 </PivotItem>
             </Pivot>
+            <Frame x:Name="ReadmeFrame" 
+                   Visibility="Collapsed"
+                   RelativePanel.AlignLeftWithPanel="True"
+                   RelativePanel.AlignRightWithPanel="True"
+                   RelativePanel.AlignTopWithPanel="True"
+                   RelativePanel.AlignBottomWithPanel="True"
+                   Margin="10,10,10,10" Background="#FF2D2D30">
+                <RelativePanel>
+                    <ScrollViewer x:Name="ReadMeScroll" RelativePanel.Above="CloseReadme"
+                                   RelativePanel.AlignLeftWithPanel="True"
+                                   RelativePanel.AlignRightWithPanel="True"
+                                   RelativePanel.AlignTopWithPanel="True">
+                    <TextBlock x:Name="ReadmeBox"
+                                   RelativePanel.Above="CloseReadme"
+                                   RelativePanel.AlignLeftWithPanel="True"
+                                   RelativePanel.AlignRightWithPanel="True"
+                                   RelativePanel.AlignTopWithPanel="True"
+                                   Margin="5,5,5,5" FontSize="10"
+                               TextWrapping="Wrap"
+                               ScrollViewer.VerticalScrollMode="Enabled"
+                                   />
+                    </ScrollViewer>
+                    <Button x:Name="CloseReadme"
+                        Content="Close"
+                            Click="CloseReadme_Click"
+                        RelativePanel.AlignBottomWithPanel="True"
+                        Background="{x:Null}"
+                        BorderBrush="{x:Null}"
+                        Foreground="#FF33B1DF" FontSize="20"
+                            RelativePanel.AlignLeftWithPanel="True"
+                            RelativePanel.AlignRightWithPanel="True"
+                            HorizontalAlignment="Stretch"/>
+                </RelativePanel>
+
+            </Frame>
             <Button 
                 x:Name="InstallPackageBtn"
                 Click="InstallPackageBtn_Click"

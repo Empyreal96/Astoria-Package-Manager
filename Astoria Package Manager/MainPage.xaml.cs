@@ -1,44 +1,28 @@
-﻿using ApkInfoReader;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
 using System.Xml.Linq;
-using System.Xml;
 using Windows.Management.Deployment;
 using Windows.UI.Popups;
-
-using System.Collections.ObjectModel;
-
-using CG.Web.MegaApiClient;
-using Windows.Web.Http;
-using Windows.Web.Http.Headers;
-using Phone_Helper;
-using System.Runtime.InteropServices;
-
 using Windows.Storage.AccessCache;
-using System.Diagnostics;
 using Windows.Storage.Search;
 using Windows.Networking.BackgroundTransfer;
 using System.Threading;
 
-//using Windows.Data.Xml.Dom;
-
+using CG.Web.MegaApiClient;
+using Phone_Helper;
+using ApkInfoReader;
+using System.Net.NetworkInformation;
+using Windows.UI.Xaml.Media.Imaging;
 
 namespace Astoria_Package_Manager
 {
@@ -47,14 +31,14 @@ namespace Astoria_Package_Manager
     /// </summary>
     public sealed partial class MainPage : Page
     {
+        public static string APMVersion = "1.0.40";
         public bool IsFirstRunComplete { get; set; }
+        public static bool IsAPKFile { get; set; }
         public string OBBStorageToken = "OBBData";
         public string DownloadsToken = "DLData";
-        public StorageFolder PackageFolder { get; set; }
-        public static StorageFolder obbFiles { get; set; }
         public static StorageFolder AndroidFolder{ get; set; }
         public static StorageFolder DownloadFolder { get; set; }
-        public StorageFolder SelectedObbFolder { get; set; }
+       
         public IReadOnlyList<StorageFile> files { get; set; }
         public bool IsAppDataRequired { get; set; }
         public static string content { get; set; }
@@ -62,17 +46,16 @@ namespace Astoria_Package_Manager
         public static StorageFile file2 { get; set; }
         public static StorageFolder storage { get; set; }
         public static StorageFolder storage2 { get; set; }
-        public StorageFileQueryResult result { get; set; }
-        public string PermName { get; set; }
         public string newmanifest { get; set; }
         public string PackageInfo { get; set; }
         public string PackageName { get; set; }
         public string FoundPermissions { get; set; }
-        public string InstaledPkgList { get; set; }
+        
         DownloadOperation downloadOperation;
         CancellationTokenSource cancellationToken;
-
         BackgroundDownloader backgroundDownloader = new BackgroundDownloader();
+
+        public bool isNetworkConnected = NetworkInterface.GetIsNetworkAvailable();
 
         /// <summary>
         /// 
@@ -83,13 +66,12 @@ namespace Astoria_Package_Manager
             {
                 this.InitializeComponent();
                 Loaded += Page_Loaded;
-                if (Debugger.IsAttached == true)
-                {
-                    ClearFirstRunData.Visibility = Visibility.Visible;
-                } else
-                {
-                    ClearFirstRunData.Visibility = Visibility.Collapsed;
-                }
+                // mess
+                AppLogo.Visibility = Visibility.Collapsed;
+                AppLogo.Width = 0;
+                AppLogo.Height = 0;
+                PermText.Visibility = Visibility.Collapsed;
+                ClearFirstRunData.Visibility = Visibility.Visible;
                 RepoGrid.Visibility = Visibility.Collapsed;
                 Appsbutton.Visibility = Visibility.Collapsed;
                 GamesButton.Visibility = Visibility.Collapsed;
@@ -113,23 +95,27 @@ namespace Astoria_Package_Manager
                 AddOBBData.Visibility = Visibility.Collapsed;
                 GetAndroidFolder();
                 GetDownloadFolder();
-                OutputBox.Text = "\n[Alpha Build]\n\n" +
-                    "Open a compatible package to install, bigger packages (60MB+) will take longer to process.\n\n" +
-                    "Please be aware functionality is limited for now, over time this will become perfected!";
-                AboutText.Text = "This software uses several Open Source libraries:\n• Iteedee.ApkReader by hylander0\n" +
+                OutputBox.Text = "\n[First Release Candidate]\n\n" +
+                    "Open a compatible package to install, bigger packages (60MB+) or large Manifests will take longer to process.\n\n";
+
+                AboutText.Text = $"Version: {APMVersion}\n\n This software uses several Open Source libraries:\n• Iteedee.ApkReader by hylander0\n" +
                     "• MegaApiClient fork from MediaExplorer\n\n" +
-                    @"### Help/FAQ ###\n\nQ) How do I access Android Storage? I don't have [This Phone] > [Android Storage] folder\n\n" + 
-                    @"A) You have two options to restore the folder:\n\n- Re-apply Patch 2 from the [WindOS Fone Tutorial](https://youtu.be/vP-z8jVXVBQ)\n" + 
-                    @"- Manually create the folder, You will need [CMD access](https://github.com/fadilfadz01/CMD.Injector) on-device.\n\n" + 
-                    @"To manually create, open/connect to the Command Prompt, and type:\n\n`mklink" + 
-                    @"/J C:\Data\Users\Public\Android Storage C:\Data\Users\DefApps\AppData\Local\aow\mnt\shell\emulated\0\\n\n"  +
                     "Want to submit an app to the repo?" +
                     "\nRepack/Convert the app to Appx, and upload to the ProjectA Telegram, I will update the repo as needed";
+
             } catch (Exception ex)
             {
                 ExceptionHelper.Exceptions.ThrownExceptionError(ex);
             }
         }
+        
+        public async void CloseReadme_Click(object sender, RoutedEventArgs e)
+        {
+            ReadmeFrame.Visibility = Visibility.Collapsed;
+            ReadmeBox.Visibility = Visibility.Collapsed;
+            CloseReadme.Visibility = Visibility.Collapsed;
+        }
+
 
         /// <summary>
         /// 
@@ -141,6 +127,7 @@ namespace Astoria_Package_Manager
             {
                 var OldData = await ApplicationData.Current.LocalFolder.GetFileAsync("FRComplete.txt");
                 await OldData.DeleteAsync();
+                ClearFirstRunData.IsEnabled = false;
             }
             catch (Exception ex)
             {
@@ -201,7 +188,7 @@ namespace Astoria_Package_Manager
                 FileOpenPicker picker = new FileOpenPicker();
                 picker.FileTypeFilter.Add(".obb");
                 files = await picker.PickMultipleFilesAsync();
-                OutputBox.Text += "\n\nData Files Loaded ";
+                OutputBox.Text += "\nData Files Loaded ";
                 foreach (var file in files)
                 {
                     OutputBox.Text += $"\n{file.Name}";
@@ -243,7 +230,29 @@ namespace Astoria_Package_Manager
         /// <param name="e"></param>
         private async void GithubAStorageLnk_Click(object sender, RoutedEventArgs e)
         {
-            
+            if (isNetworkConnected == true)
+            {
+                string readmeURL = "https://github.com/Empyreal96/Astoria-Package-Manager/raw/main/README.txt";
+                ReadmeFrame.Visibility = Visibility.Visible;
+                CloseReadme.Visibility = Visibility.Visible;
+                ReadmeBox.Visibility = Visibility.Visible;
+                ReadmeBox.Text = "Fetching RREADME.txt from Github";
+                var readmecreate = await ApplicationData.Current.LocalFolder.CreateFileAsync("README.txt", CreationCollisionOption.ReplaceExisting);
+                downloadOperation = backgroundDownloader.CreateDownload(new Uri(readmeURL), readmecreate);
+                cancellationToken = new CancellationTokenSource();
+                await downloadOperation.StartAsync().AsTask(cancellationToken.Token);
+
+                if (readmecreate == null)
+                {
+                    ExceptionHelper.Exceptions.CustomException("Error fetching file \"README.txt\"");
+                }
+                var text = await FileIO.ReadTextAsync(readmecreate);
+                ReadmeBox.Text = text;
+            }
+            else
+            {
+                ExceptionHelper.Exceptions.CustomException("Please connect to the Internet to fetch latest Readme");
+            }
         }
 
         /// <summary>
@@ -254,10 +263,13 @@ namespace Astoria_Package_Manager
         public async void OpenArchive_Click(object sender, RoutedEventArgs e)
         {
             ClearStorage();
-            
+            AppLogo.Visibility = Visibility.Collapsed;
+            PermText.Text = "";
+            OutputBox.Text = "";
             AddOBBData.Visibility = Visibility.Collapsed;
             FileOpenPicker filePicker = new FileOpenPicker();
             filePicker.FileTypeFilter.Add(".appx");
+            //filePicker.FileTypeFilter.Add(".apk");
             StorageFile file = await filePicker.PickSingleFileAsync();
             if (file == null)
             {
@@ -284,7 +296,14 @@ namespace Astoria_Package_Manager
         {
             try
             {
-
+                AppLogo.Width = 50;
+                AppLogo.Height = 50;
+                BitmapImage image = new BitmapImage();
+                var imgfile = await ApplicationData.Current.LocalCacheFolder.GetFileAsync("AppLogo.scale-240.png");
+                FileRandomAccessStream iconstream = (FileRandomAccessStream)await imgfile.OpenAsync(FileAccessMode.Read);
+                image.SetSource(iconstream);
+                
+                AppLogo.Source = image;
 
                 XDocument doc = XDocument.Load(stream);
 
@@ -311,15 +330,17 @@ namespace Astoria_Package_Manager
                     FoundPermissions += $"{permission.PermName}\n";
                 }
                 AndroidAPIs.CheckPermissions(FoundPermissions);
-                PackageInfo = $"\nPackage Name: {packageName.ToString().Replace("package=", "").Replace("\"", "")}\nVersion: {versionName.ToString().Replace("versionName=", "").Replace("\"", "")}\nMinimum Build: {AndroidAPIs.minSDKLevel}\nTarget Build: {AndroidAPIs.targetSDKLevel}\n\n\nPermissions:\n{AndroidAPIs.PermissionsRequested}";
+                PackageInfo = $"\nPackage Name: {packageName.ToString().Replace("package=", "").Replace("\"", "")}\nVersion: {versionName.ToString().Replace("versionName=", "").Replace("\"", "")}\nMinimum Build: {AndroidAPIs.minSDKLevel}\nTarget Build: {AndroidAPIs.targetSDKLevel}";
 
 
                 //
                 CheckAPICompat(AndroidAPIs.minSDKLevel);
                 await GetAndroidFolder();
                 textblock.Text = PackageInfo;
-
+                PermText.Text = $"Permissions:\n{ AndroidAPIs.PermissionsRequested}";
+                AppLogo.Visibility = Visibility.Visible;
                 InstallPackageBtn.Visibility = Visibility.Visible;
+                PermText.Visibility = Visibility.Visible;
                 AddOBBData.Visibility = Visibility.Visible;
                 progressBar.IsEnabled = false;
                 progressBar.IsEnabled = false;
@@ -332,6 +353,7 @@ namespace Astoria_Package_Manager
             }
         }
 
+       
 
         /// <summary>
         /// 
@@ -437,12 +459,12 @@ namespace Astoria_Package_Manager
 
                 storage = ApplicationData.Current.LocalCacheFolder;
 
-                OutputBox.Text = "Processing Package Information";
+                OutputBox.Text = "\nProcessing Package Information";
                 await Decompress(file, storage);
 
 
-                await DecompressManifest(file, storage);
-                OutputBox.Text = "Reading Manifest";
+                await DecompressManifest(storage);
+                OutputBox.Text = "\nReading Manifest";
                 DecodeManifest(storage);
 
 
@@ -471,53 +493,95 @@ namespace Astoria_Package_Manager
             SelectedPackage = source;
             // GlobalStrings.Logger = "";
             //log = new List<ArchiverError>();
-            try
+            if (source.FileType == ".appx")
             {
-                using (Stream stream = await source.OpenStreamForReadAsync())
+                IsAPKFile = false;
+                try
                 {
-                    using (ZipArchive archive = new ZipArchive(stream, ZipArchiveMode.Read))
+                    using (Stream stream = await source.OpenStreamForReadAsync())
                     {
-                        foreach (ZipArchiveEntry entry in archive.Entries)
+                        using (ZipArchive archive = new ZipArchive(stream, ZipArchiveMode.Read))
                         {
-                            if (entry.Name == "payload.apk")
+                            foreach (ZipArchiveEntry entry in archive.Entries)
                             {
-
-                                string fileName = entry.FullName.Replace("/", "\\");
-
-                                using (Stream entryStream = entry.Open())
+                                if (entry.Name == "payload.apk")
                                 {
-                                    byte[] buffer = new byte[entry.Length];
-                                    entryStream.Read(buffer, 0, buffer.Length);
 
-                                    try
+                                    string fileName = entry.FullName.Replace("/", "\\");
+
+                                    using (Stream entryStream = entry.Open())
                                     {
-                                        StorageFile file = await destination.CreateFileAsync(fileName, CreationCollisionOption.ReplaceExisting);
+                                        byte[] buffer = new byte[entry.Length];
+                                        entryStream.Read(buffer, 0, buffer.Length);
 
-                                        using (IRandomAccessStream uncompressedFileStream = await file.OpenAsync(FileAccessMode.ReadWrite))
+                                        try
                                         {
-                                            using (Stream data = uncompressedFileStream.AsStreamForWrite())
+                                            StorageFile file = await destination.CreateFileAsync(fileName, CreationCollisionOption.ReplaceExisting);
+
+                                            using (IRandomAccessStream uncompressedFileStream = await file.OpenAsync(FileAccessMode.ReadWrite))
                                             {
-                                                data.Write(buffer, 0, buffer.Length);
-                                                data.Flush();
+                                                using (Stream data = uncompressedFileStream.AsStreamForWrite())
+                                                {
+                                                    data.Write(buffer, 0, buffer.Length);
+                                                    data.Flush();
+                                                }
                                             }
                                         }
+                                        catch (Exception ex)
+                                        {
+                                            ExceptionHelper.Exceptions.ThrownExceptionError(ex);
+                                        }
                                     }
-                                    catch (Exception ex)
-                                    {
-                                        ExceptionHelper.Exceptions.ThrownExceptionError(ex);
-                                    }
-                                }
 
+                                }
+                                if (entry.Name == "AppLogo.scale-240.png")
+                                {
+                                    
+                                    string fileName = "AppLogo.scale-240.png";
+
+                                    using (Stream entryStream = entry.Open())
+                                    {
+                                        byte[] buffer = new byte[entry.Length];
+                                        entryStream.Read(buffer, 0, buffer.Length);
+                                        try
+                                        {
+                                            StorageFile file = await destination.CreateFileAsync(fileName, CreationCollisionOption.ReplaceExisting);
+
+                                            using (IRandomAccessStream uncompressedFileStream = await file.OpenAsync(FileAccessMode.ReadWrite))
+                                            {
+                                                using (Stream data = uncompressedFileStream.AsStreamForWrite())
+                                                {
+                                                    data.Write(buffer, 0, buffer.Length);
+                                                    data.Flush();
+                                                }
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            ExceptionHelper.Exceptions.ThrownExceptionError(ex);
+                                        }
+                                    }
+
+                                }
                             }
                         }
                     }
                 }
-            }
-            catch (Exception ex)
+                catch (Exception ex)
+                {
+                    ExceptionHelper.Exceptions.ThrownExceptionError(ex);
+                }
+            } else if (source.FileType == ".apk")
             {
-                ExceptionHelper.Exceptions.ThrownExceptionError(ex);
+                IsAPKFile = true;
+                await source.CopyAsync(ApplicationData.Current.LocalFolder, "payload.apk", NameCollisionOption.ReplaceExisting);
+                await DecompressManifest(ApplicationData.Current.LocalFolder);
             }
         }
+
+
+       
+
 
 
         /// <summary>
@@ -526,7 +590,7 @@ namespace Astoria_Package_Manager
         /// <param name="source">The compressed zip file.</param>
         /// <param name="destination">The folder where the file will be decompressed.</param>
 
-        public static async Task DecompressManifest(StorageFile source, StorageFolder destination)
+        public static async Task DecompressManifest(StorageFolder destination)
         {
             // GlobalStrings.Logger = "";
             //log = new List<ArchiverError>();
@@ -650,32 +714,47 @@ SaveManifest()
         /// <param name="file"></param>
         public async void InstallPackage(StorageFile file)
         {
-            try
+            if (IsAPKFile == false)
             {
-            
-            OpenArchiveHeader.Text = "Installing, Please Wait";
-            //pacman.FindPackageForUser
+                try
+                {
 
-            
+                    OpenArchiveHeader.Text = "Installing, Please Wait";
+                    //pacman.FindPackageForUser
 
-                
-                await pacman.AddPackageAsync(new Uri(file.Path), null, DeploymentOptions.ForceTargetApplicationShutdown);
-                OpenArchiveHeader.Text = "Select another file to install more";
-                progressBar.IsEnabled = false;
-                progressBar.Visibility = Visibility.Collapsed;
-                progressBar.IsIndeterminate = false;
-                var CompletedInstall = new MessageDialog($"{PackageName} has installed successfully");
-                CompletedInstall.Commands.Add(new UICommand("Close"));
-                await CompletedInstall.ShowAsync();
+                    progressBar.Visibility = Visibility.Visible;
+                    progressBar.IsEnabled = true;
+                    progressBar.IsIndeterminate = true;
 
 
+                    await pacman.AddPackageAsync(new Uri(file.Path), null, DeploymentOptions.ForceTargetApplicationShutdown);
+                    //.Text = "Select another file to install more";
+                    string appxname = $"Aow{PackageName.Replace(".", "").Replace("_", "")}_";
+                    //  C:\Data\Users\DefApps\AppData\Local\aow\data\data
 
-            } catch (Exception ex)
+
+                }
+                catch (Exception ex)
+                {
+                    OutputBox.Text = $"An error occured while trying to install: \n{ex.Message}";
+                }
+            } else
             {
-                OutputBox.Text = $"An error occured while trying to install: \n{ex.Message}";
+                PrepareArcadiaStaging();
             }
         }
        
+        public async void PrepareArcadiaStaging()
+        {
+            var ArcadiaEXE = await StorageFile.GetFileFromApplicationUriAsync(new Uri("ms-appx:///Assets/Arcadia/Template/Arcadia.exe"));
+            var ArcadiaWINMD = await StorageFile.GetFileFromApplicationUriAsync(new Uri("ms-appx:///Assets/Arcadia/Template/Arcadia.winmd"));
+            var AoWBackgroundTaskDLL = await StorageFile.GetFileFromApplicationUriAsync(new Uri("ms-appx:///Assets/Arcadia/Template/AoWBackgroundTask.dll"));
+            var ArcadiaManifestXML = await StorageFile.GetFileFromApplicationUriAsync(new Uri("ms-appx:///Assets/Arcadia/Template/AppxManifest.xml"));
+            var ArcadiaConfigXML = await StorageFile.GetFileFromApplicationUriAsync(new Uri("ms-appx:///Assets/Arcadia/Template/Config.xml"));
+            var MakePriAppDataEXE = await StorageFile.GetFileFromApplicationUriAsync(new Uri("ms-appx:///Assets/Arcadia/Tools/MakePri.exe"));
+
+        }
+
         /// <summary>
         /// Clears all files in the Apps LocalCacheFolder
         /// </summary>
@@ -690,6 +769,7 @@ SaveManifest()
                     try
                     {
                         await tempItem.DeleteAsync();
+                        
                     }
                     catch (Exception ee)
                     {
@@ -715,20 +795,18 @@ SaveManifest()
                     progressBar.IsEnabled = true;
                     progressBar.Visibility = Visibility.Visible;
                     progressBar.IsIndeterminate = true;
-                    //StorageNotifier.Notifier.ShowAStorageMessage();
+
                     
                    OpenArchiveHeader.Text = "Copying Files";
-                   // files = await SelectedObbFolder.GetFilesAsync();
+
                    var AndroidOutput = await AndroidFolder.CreateFolderAsync(PackageName, CreationCollisionOption.OpenIfExists);
-                   // var output = await folder.GetFolderAsync(PackageName);
-                    
-                    //await CopyFolder(folder, SelectedObbFolder, ".obb");
+
 
                     foreach (var obb in files)
                     {
 
                         OpenArchiveHeader.Text = $"Copying {obb.Name}";
-                        // await ApplicationData.Current.LocalFolder.DeleteAsync();
+                        
                         await obb.CopyAsync(AndroidOutput, obb.Name, NameCollisionOption.ReplaceExisting);
                         
                         var info = await obb.GetBasicPropertiesAsync();
@@ -738,10 +816,9 @@ SaveManifest()
                             return;
                         }
                         OpenArchiveHeader.Text = $"Copying {obb.Name} Finished";
-                        OutputBox.Text += $"\nCopied {obb.Name} {((long)info.Size).ToFileSize()}";
+                        OutputBox.Text = $"Copied {obb.Name} Successfully, Size: {((long)info.Size).ToFileSize()}";
                     }
-                    //OpenArchiveHeader.Text = savedOutput.Path;
-                    //var obbFilesFound = await savedOutput.GetFilesAsync();
+
                     progressBar.IsEnabled = false;
                     progressBar.Visibility = Visibility.Visible;
                     progressBar.IsIndeterminate = false;
@@ -751,10 +828,17 @@ SaveManifest()
                 }
                 
             }
-            InstallPackage(SelectedPackage);
+           InstallPackage(SelectedPackage);
+            await Task.Delay(7000);
+            OpenArchiveHeader.Text = "Installation Complete";
             progressBar.IsEnabled = false;
             progressBar.Visibility = Visibility.Collapsed;
             progressBar.IsIndeterminate = false;
+            var CompletedInstall = new MessageDialog($"{PackageName} has installed successfully. \n\nIt may take a few seconds to show, If not, report the issue");
+            CompletedInstall.Commands.Add(new UICommand("Close"));
+            await CompletedInstall.ShowAsync();
+            
+
         }
 
         /// <summary>
@@ -969,7 +1053,7 @@ SaveManifest()
                     }
                 }
 
-                StorageFile storageFile = await storageFolder.CreateFileAsync($"{button.Tag.ToString()}");
+                StorageFile storageFile = await storageFolder.CreateFileAsync($"{button.Tag.ToString()}", CreationCollisionOption.ReplaceExisting);
                 using (var stream = client.Download(Selnode))
                 {
                     var outFile = await storageFile.OpenAsync(FileAccessMode.ReadWrite);
@@ -977,7 +1061,7 @@ SaveManifest()
                     OutputText.Text = $"Downloading {Selnode.Name.Replace(" ", "")}";
 
                     await stream.CopyToAsync(outStream.AsStreamForWrite());
-
+                    
                     //await outStream.CopyToAsync((Stream)inputStream);
                     await outStream.FlushAsync();
                 }
@@ -987,6 +1071,7 @@ SaveManifest()
                 progressRepo.IsIndeterminate = false;
                 progressRepo.IsEnabled = false;
                 progressRepo.Visibility = Visibility.Collapsed;
+                storageFile = null;
                 ExceptionHelper.Exceptions.DownloadCompleted($"\"{Selnode.Name.Replace(" ", "")}\"");
             } catch (Exception ex)
             {
@@ -995,6 +1080,7 @@ SaveManifest()
                 progressRepo.IsIndeterminate = false;
                 progressRepo.IsEnabled = false;
                 progressRepo.Visibility = Visibility.Collapsed;
+                
                 ExceptionHelper.Exceptions.ThrownExceptionError(ex);
             }
         }
@@ -1354,15 +1440,24 @@ SaveManifest()
         /// <param name="e"></param>
         private void LoadRepo_Click(object sender, RoutedEventArgs e)
         {
-            RepoGrid.Visibility = Visibility.Visible;
-            LoadRepo.Visibility = Visibility.Collapsed;
-            GamesStack.Visibility = Visibility.Visible;
-            Appsbutton.Visibility = Visibility.Visible;
-            GamesButton.Visibility = Visibility.Visible;
-            client = new MegaApiClient();
-            client.LoginAnonymous();
+            if (isNetworkConnected == true)
+            {
+                RepoGrid.Visibility = Visibility.Visible;
+                LoadRepo.Visibility = Visibility.Collapsed;
+                GamesStack.Visibility = Visibility.Visible;
+                Appsbutton.Visibility = Visibility.Visible;
+                GamesButton.Visibility = Visibility.Visible;
+                client = new MegaApiClient();
+                client.LoginAnonymous();
+            } else
+            {
+                ExceptionHelper.Exceptions.CustomException("Please connect to the Internet to load ProjectA Repo");
+            }
         }
 
+
        
+
+
     }
 }

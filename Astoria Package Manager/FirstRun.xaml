@@ -72,22 +72,30 @@
                 BorderBrush="{x:Null}"
                 Foreground="#FF33B1DF" FontSize="20"/>
             <Frame x:Name="ReadmeFrame" 
+                   Visibility="Collapsed"
                    RelativePanel.AlignLeftWithPanel="True"
                    RelativePanel.AlignRightWithPanel="True"
                    RelativePanel.AlignTopWithPanel="True"
                    RelativePanel.AlignBottomWithPanel="True"
-                   Margin="10,10,10,10">
+                   Margin="10,10,10,10" Background="#FF2D2D30">
                 <RelativePanel>
-                    <TextBlock x:Name="ReadmeBox"
+                    <ScrollViewer x:Name="ReadMeScroll" RelativePanel.Above="CloseReadme"
+                                   RelativePanel.AlignLeftWithPanel="True"
+                                   RelativePanel.AlignRightWithPanel="True"
+                                   RelativePanel.AlignTopWithPanel="True">
+                        <TextBlock x:Name="ReadmeBox"
                                    RelativePanel.Above="CloseReadme"
                                    RelativePanel.AlignLeftWithPanel="True"
                                    RelativePanel.AlignRightWithPanel="True"
                                    RelativePanel.AlignTopWithPanel="True"
-                                   Margin="5,5,5,5"
+                                   Margin="5,5,5,5" FontSize="10"
+                               TextWrapping="Wrap"
+                               ScrollViewer.VerticalScrollMode="Enabled"
                                    />
-                    
+                    </ScrollViewer>
                     <Button x:Name="CloseReadme"
                         Content="Close"
+                            Click="CloseReadme_Click"
                         RelativePanel.AlignBottomWithPanel="True"
                         Background="{x:Null}"
                         BorderBrush="{x:Null}"

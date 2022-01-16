@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
@@ -41,6 +42,7 @@ namespace Astoria_Package_Manager
         CancellationTokenSource cancellationToken;
 
         BackgroundDownloader backgroundDownloader = new BackgroundDownloader();
+        public bool isNetworkConnected = NetworkInterface.GetIsNetworkAvailable();
         public static string tokenforapp { get; set; }
         public string token2 { get; set; }
         public string RememberOBBFolder(StorageFolder Folder)
@@ -127,22 +129,29 @@ namespace Astoria_Package_Manager
 
         private async void GithubLink_Click(object sender, RoutedEventArgs e)
         {
-            string readmeURL = "https://github.com/Empyreal96/Astoria-Package-Manager/raw/main/README.txt";
-            
-            var readmecreate = await ApplicationData.Current.LocalFolder.CreateFileAsync("README.txt");
-            downloadOperation = backgroundDownloader.CreateDownload(new Uri(readmeURL), readmecreate);
-            cancellationToken = new CancellationTokenSource();
-            await downloadOperation.StartAsync().AsTask(cancellationToken.Token);
-            var readmeFile = await ApplicationData.Current.LocalFolder.GetFileAsync("README.txt");
-            if (readmeFile == null)
+            if (isNetworkConnected == true)
             {
-                ExceptionHelper.Exceptions.CustomException("Error fetching file \"README.txt\"");
+                string readmeURL = "https://github.com/Empyreal96/Astoria-Package-Manager/raw/main/README.txt";
+                ReadmeFrame.Visibility = Visibility.Visible;
+                CloseReadme.Visibility = Visibility.Visible;
+                ReadmeBox.Visibility = Visibility.Visible;
+                ReadmeBox.Text = "Fetching RREADME.txt from Github";
+                var readmecreate = await ApplicationData.Current.LocalFolder.CreateFileAsync("README.txt", CreationCollisionOption.ReplaceExisting);
+                downloadOperation = backgroundDownloader.CreateDownload(new Uri(readmeURL), readmecreate);
+                cancellationToken = new CancellationTokenSource();
+                await downloadOperation.StartAsync().AsTask(cancellationToken.Token);
+
+                if (readmecreate == null)
+                {
+                    ExceptionHelper.Exceptions.CustomException("Error fetching file \"README.txt\"");
+                }
+                var text = await FileIO.ReadTextAsync(readmecreate);
+                ReadmeBox.Text = text;
+            } else
+            {
+                ExceptionHelper.Exceptions.CustomException("Please connect to the Internet to fetch latest Readme");
             }
-            var text = await FileIO.ReadLinesAsync(readmeFile);
-            ReadmeBox.Text = text.ToString();
-            CloseReadme.Visibility = Visibility.Visible;
-            ReadmeBox.Visibility = Visibility.Visible;
-            ReadmeFrame.Visibility = Visibility.Visible;
+            
             //ReadmeBox.Con
         }
 
@@ -150,15 +159,24 @@ namespace Astoria_Package_Manager
         {
             if(tokenforapp != "OBBData")
             {
-                
-                ExceptionHelper.Exceptions.AstoriaSetupError();
-                return;
+                if (token2 != "DLData")
+                {
+                    ExceptionHelper.Exceptions.AstoriaSetupError();
+                    return;
+                }
             }
             else
             {
                 await ApplicationData.Current.LocalFolder.CreateFileAsync("FRComplete.txt");
                 this.Frame.Navigate(typeof(MainPage));
             }
+        }
+
+        private void CloseReadme_Click(object sender, RoutedEventArgs e)
+        {
+            CloseReadme.Visibility = Visibility.Collapsed;
+            ReadmeBox.Visibility = Visibility.Collapsed;
+            ReadmeFrame.Visibility = Visibility.Collapsed;
         }
     }
 }

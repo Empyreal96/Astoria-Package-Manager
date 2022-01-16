@@ -8,7 +8,7 @@
     <UapAppxPackageBuildMode>SideloadOnly</UapAppxPackageBuildMode>
     <AppxShowAllApps>False</AppxShowAllApps>
     <AppxBuildConfigurationSelection>arm</AppxBuildConfigurationSelection>
-    <PackageOptionalProjectsInIdeBuilds>True</PackageOptionalProjectsInIdeBuilds>
+    <PackageOptionalProjectsInIdeBuilds>False</PackageOptionalProjectsInIdeBuilds>
     <Source>C:\Users\Empyreal96\Pictures\APK2APPX_1000x1000.png</Source>
     <SmallTileSource>C:\Users\Empyreal96\Pictures\APK2APPX_1000x1000.png</SmallTileSource>
     <MediumTileSource>C:\Users\Empyreal96\Pictures\APK2APPX_1000x1000.png</MediumTileSource>

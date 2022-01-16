@@ -3,8 +3,6 @@ A simple Package Manager for Windows Phones running Astoria builds (10240 - 1057
 
 
 
-### Not release ready yet
-
 ## Requirements:
 
 - Windows 10 Mobile Builds 10240 - 10570
@@ -41,4 +39,4 @@ To manually create, open/connect to the Command Prompt, and type:
 
 ### Notices:
 - UI is not final 
-- This is still in early stages, issues may occur
+- This is still in early stages, issues may occur.
