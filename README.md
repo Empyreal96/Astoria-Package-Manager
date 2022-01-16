@@ -1,4 +1,5 @@
-# Astoria Package Manager (In Progress)
+# Astoria Package Manager
+
 A simple Package Manager for Windows Phones running Astoria builds (10240 - 10570) 
 
 ![](https://github.com/Empyreal96/Astoria-Package-Manager/raw/main/APManager.jpg)
